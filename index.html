@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>Kid 的艾森豪矩陣</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --urgent-important: #ffcccc;
+            --not-urgent-important: #ccffcc;
+            --urgent-not-important: #ffffcc;
+            --not-urgent-not-important: #e0e0e0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Comic Sans MS', cursive;
+            background: #fffaf0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1[contenteditable] {
+            margin: 20px;
+            color: #ff4d4d;
+            outline: none;
+            border-bottom: 2px dashed #ff4d4d;
+            cursor: text;
+        }
+
+        .matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            gap: 10px;
+        }
+
+        .quadrant {
+            border-radius: 15px;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .quadrant h2 {
+            font-size: 1.2em;
+            margin-top: 0;
+        }
+
+        .task {
+            background: white;
+            border-radius: 10px;
+            padding: 8px;
+            margin: 5px 0;
+            box-shadow: 0 0 5px #ccc;
+            cursor: move;
+        }
+
+        .add-task {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: #ff8080;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+
+        .color-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #666;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .matrix {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="color-toggle" onclick="toggleColor()">🎨 切換顏色</div>
+    <h1 id="editableTitle" contenteditable="true">Kid 的艾森豪矩陣</h1>
+    <div class="matrix">
+        <div class="quadrant" id="q1" style="background-color: var(--urgent-important)" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h2>🍅 緊急且重要</h2>
+            <button class="add-task" onclick="addTask('q1')">+</button>
+        </div>
+        <div class="quadrant" id="q2" style="background-color: var(--not-urgent-important)" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h2>📚 不緊急但重要</h2>
+            <button class="add-task" onclick="addTask('q2')">+</button>
+        </div>
+        <div class="quadrant" id="q3" style="background-color: var(--urgent-not-important)" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h2>⚡ 緊急但不重要</h2>
+            <button class="add-task" onclick="addTask('q3')">+</button>
+        </div>
+        <div class="quadrant" id="q4" style="background-color: var(--not-urgent-not-important)" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h2>😴 不緊急不重要</h2>
+            <button class="add-task" onclick="addTask('q4')">+</button>
+        </div>
+    </div>
+
+    <script>
+        function loadTasks() {
+            ['q1', 'q2', 'q3', 'q4'].forEach(id => {
+                let container = document.getElementById(id);
+                let saved = localStorage.getItem(id);
+                if (saved) {
+                    JSON.parse(saved).forEach(task => {
+                        let taskEl = createTaskElement(task);
+                        container.appendChild(taskEl);
+                    });
+                }
+            });
+            let savedTitle = localStorage.getItem('title');
+            if (savedTitle) document.getElementById('editableTitle').textContent = savedTitle;
+        }
+
+        function addTask(quadrantId) {
+            let text = prompt('輸入任務：');
+            if (!text) return;
+            let container = document.getElementById(quadrantId);
+            let taskEl = createTaskElement(text);
+            container.appendChild(taskEl);
+            saveTasks(quadrantId);
+        }
+
+        function createTaskElement(text) {
+            let taskEl = document.createElement('div');
+            taskEl.className = 'task';
+            taskEl.textContent = text;
+            taskEl.draggable = true;
+            taskEl.ondragstart = drag;
+            taskEl.onclick = () => deleteTask(taskEl);
+            return taskEl;
+        }
+
+        function deleteTask(taskEl) {
+            if (confirm('刪除這個任務？')) {
+                let quadrantId = taskEl.parentElement.id;
+                taskEl.remove();
+                saveTasks(quadrantId);
+            }
+        }
+
+        function saveTasks(quadrantId) {
+            let container = document.getElementById(quadrantId);
+            let tasks = Array.from(container.querySelectorAll('.task')).map(el => el.textContent);
+            localStorage.setItem(quadrantId, JSON.stringify(tasks));
+        }
+
+        function drag(event) {
+            event.dataTransfer.setData('text', event.target.textContent);
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            let data = event.dataTransfer.getData('text');
+            let target = event.target.closest('.quadrant');
+            let taskEl = createTaskElement(data);
+            target.appendChild(taskEl);
+            saveTasks(target.id);
+        }
+
+        function toggleColor() {
+            let root = document.documentElement;
+            if (root.style.getPropertyValue('--urgent-important') === '#ffcccc') {
+                root.style.setProperty('--urgent-important', '#ffd6e0');
+                root.style.setProperty('--not-urgent-important', '#d0f0c0');
+                root.style.setProperty('--urgent-not-important', '#fff2b2');
+                root.style.setProperty('--not-urgent-not-important', '#cccccc');
+            } else {
+                root.style.setProperty('--urgent-important', '#ffcccc');
+                root.style.setProperty('--not-urgent-important', '#ccffcc');
+                root.style.setProperty('--urgent-not-important', '#ffffcc');
+                root.style.setProperty('--not-urgent-not-important', '#e0e0e0');
+            }
+        }
+
+        document.getElementById('editableTitle').addEventListener('input', function() {
+            localStorage.setItem('title', this.textContent);
+        });
+
+        window.onload = loadTasks;
+    </script>
+</body>
+</html>

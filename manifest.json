@@ -1,0 +1,16 @@
+
+{
+    "name": "Kid 的艾森豪矩陣",
+    "short_name": "艾森豪",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#fffaf0",
+    "theme_color": "#ff4d4d",
+    "icons": [
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/590/590685.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
