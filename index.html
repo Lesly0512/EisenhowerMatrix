@@ -2,6 +2,48 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+#matrix {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 90vh;
+    gap: 10px;
+    padding: 10px;
+}
+.quadrant {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    overflow-y: auto;
+    background: #fefefe;
+}
+@media (max-width: 768px) {
+    #matrix {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        height: auto;
+    }
+    .quadrant {
+        height: 40vh;
+    }
+}
+.task {
+    margin: 8px 0;
+    padding: 8px;
+    border-radius: 8px;
+    background: #fff8dc;
+    cursor: grab;
+}
+</style>
+
     <meta charset="UTF-8">
     <title>Kid 的艾森豪矩陣</title>
     <link rel="manifest" href="manifest.json">
